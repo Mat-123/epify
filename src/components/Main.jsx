@@ -1,61 +1,79 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "../App.css";
 import Card from "./Card";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchDataRequestAction, fetchDataSuccessAction, fetchDataFailureAction } from "../redux/actions/actions";
 
-const Main = () => {
-  const dispatch = useDispatch();
-  const { loading, data, error } = useSelector((state) => state.data);
-  console.log(loading, data, error);
+const Main = ({ searchResults }) => {
+  const [rockSection, setRockSection] = useState([]);
+  const [popSection, setPopSection] = useState([]);
+  const [hipHopSection, setHipHopSection] = useState([]);
+
+  const handleSection = async (artistName, setSection) => {
+    try {
+      const response = await fetch("https://striveschool-api.herokuapp.com/api/deezer/search?q=" + artistName, {
+        method: "GET",
+        headers: {
+          "X-RapidAPI-Host": "deezerdevs-deezer.p.rapidapi.com",
+          "X-RapidAPI-Key": "9d408f0366mshab3b0fd8e5ecdf7p1b09f2jsne682a1797fa0",
+        },
+      });
+      if (response.ok) {
+        const { data } = await response.json();
+        console.log("Dati ottenuti dall'API:", data);
+        setSection(data.slice(0, 9));
+      } else {
+        throw new Error("Error in fetching songs");
+      }
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async (artistName, querySelector) => {
-      try {
-        dispatch(fetchDataRequestAction());
-        const response = await fetch("https://striveschool-api.herokuapp.com/api/deezer/search?q=" + artistName, {
-          method: "GET",
-          headers: {
-            "X-RapidAPI-Host": "deezerdevs-deezer.p.rapidapi.com",
-            "X-RapidAPI-Key": "9d408f0366mshab3b0fd8e5ecdf7p1b09f2jsne682a1797fa0",
-          },
-        });
-        if (response.ok) {
-          const { data } = await response.json();
-          console.log("Dati ottenuti dall'API:", data);
-          dispatch(fetchDataSuccessAction(data));
-        } else {
-          throw new Error("Error in fetching songs");
-        }
-      } catch (err) {
-        dispatch(fetchDataFailureAction(err.message));
-      }
-    };
-
-    fetchData("queen", "#rockSection");
-    fetchData("katyperry", "#popSection");
-    fetchData("eminem", "#hipHopSection");
-  }, [dispatch]);
-
-  console.log("Redux state:", { loading, data, error });
+    handleSection("queen", setRockSection);
+    handleSection("katyperry", setPopSection);
+    handleSection("eminem", setHipHopSection);
+  }, []);
 
   return (
-    <div className="col-12 col-md-9 offset-md-3 mainPage">
-      <div className="row">
-        <div className="col-9 col-lg-11 mainLinks d-none d-md-flex">
-          <a href="#">TRENDING</a>
-          <a href="#">PODCAST</a>
-          <a href="#">MOODS AND GENRES</a>
-          <a href="#">NEW RELEASES</a>
-          <a href="#">DISCOVER</a>
+    <>
+      {!searchResults || searchResults.length === 0 ? (
+        <>
+          <div className="text-white">
+            <h2 className="text-white">Rock Classics</h2>
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 imgLinks py-3">
+              {rockSection.map((songInfo) => (
+                <Card key={songInfo.id} songInfo={songInfo} />
+              ))}
+            </div>
+          </div>
+          <div className="text-white">
+            <h2>Pop Culture</h2>
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 imgLinks py-3">
+              {popSection.map((songInfo) => (
+                <Card key={songInfo.id} songInfo={songInfo} />
+              ))}
+            </div>
+          </div>
+          <div className="text-white">
+            <h2>#HipHop</h2>
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 imgLinks py-3">
+              {hipHopSection.map((songInfo) => (
+                <Card key={songInfo.id} songInfo={songInfo} />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-white">
+          <h2>Search Results</h2>
+          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 imgLinks py-3">
+            {searchResults.map((songInfo) => (
+              <Card key={songInfo.id} songInfo={songInfo} />
+            ))}
+          </div>
         </div>
-      </div>
-
-      {loading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
-      {data && data.map((songInfo, index) => <Card key={index} songInfo={songInfo} />)}
-    </div>
+      )}
+    </>
   );
 };
-
 export default Main;

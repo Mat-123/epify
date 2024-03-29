@@ -1,25 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+// App.js
+import React from "react";
+import { Container, Row } from "react-bootstrap";
+import Sidebar from "./components/Sidebar";
+import Main from "./components/Main";
+import Player from "./components/Player";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
+import { Provider } from "react-redux";
+import { createStore } from "redux";
+import rootReducer from "./redux/reducers/reducers";
 
-function App() {
+const store = createStore(rootReducer); // Crea lo store Redux utilizzando il reducer radice
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <Container fluid>
+        <Row>
+          <Sidebar />
+          <Main />
+        </Row>
+        <Player />
+      </Container>
+    </Provider>
   );
-}
+};
 
 export default App;
